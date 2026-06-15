@@ -1,0 +1,227 @@
+import type { ReceiptDetail } from "./types";
+
+/** Canonical proof records for demo / offline receipt detail. */
+export const MOCK_RECEIPT_DETAILS: ReceiptDetail[] = [
+  {
+    id: "receipt-fed-repricing",
+    displayNumber: "1482",
+    forecastTitle: "Fed repricing before September",
+    status: "verified",
+    outcome: "correct",
+    credibilityDelta: 18,
+    resolvedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    forecaster: {
+      name: "Daniel Scry",
+      slug: "daniel-scry",
+      subjectType: "user",
+      avatarColor: "#a78bfa",
+    },
+    calledProbability: 72,
+    consensusAtCall: 41,
+    consensusAtResolution: 68,
+    side: "YES",
+    calledAt: "2026-05-12",
+    reasoning:
+      "Labor softness was showing up in revisions before the market priced it. Fed language had already shifted in the minutes — consensus was still anchored to the prior dot plot. Repricing before September looked asymmetric: downside to “higher for longer” was underpriced relative to the data path.",
+    networkImpact: {
+      consensusAtCall: 41,
+      consensusAtResolution: 68,
+      consensusShift: 27,
+      publicReads: 12,
+      backers: 4,
+      challengers: 2,
+      followersGained: 9,
+      credibilityDistributed: 27,
+    },
+    backers: [],
+    challengers: [],
+    timeline: [],
+    credibilityImpact: {
+      earned: 18,
+      reason: "Correct high-conviction call ahead of consensus.",
+    },
+    related: [],
+  },
+  {
+    id: "receipt-oil-reversal",
+    displayNumber: "1471",
+    forecastTitle: "Oil reversal after OPEC surprise hold",
+    status: "verified",
+    outcome: "correct",
+    credibilityDelta: 14,
+    resolvedAt: "2026-05-20T18:00:00.000Z",
+    forecaster: {
+      name: "Daniel Scry",
+      slug: "daniel-scry",
+      subjectType: "user",
+      avatarColor: "#a78bfa",
+    },
+    calledProbability: 64,
+    consensusAtCall: 52,
+    consensusAtResolution: 71,
+    side: "NO",
+    calledAt: "2026-05-08",
+    reasoning:
+      "Inventory builds and demand revision cycle pointed to fade after the hold. OPEC messaging was priced as bullish shock; physical balances disagreed.",
+    networkImpact: {
+      consensusAtCall: 52,
+      consensusAtResolution: 71,
+      consensusShift: 19,
+      publicReads: 8,
+      backers: 2,
+      challengers: 2,
+      followersGained: 5,
+      credibilityDistributed: 18,
+    },
+    backers: [],
+    challengers: [],
+    timeline: [],
+    credibilityImpact: {
+      earned: 14,
+      reason: "Correct contrarian read with clear inventory thesis.",
+    },
+    related: [],
+  },
+  {
+    id: "receipt-recession-risk",
+    displayNumber: "1463",
+    forecastTitle: "Recession risk repricing in H2 guidance",
+    status: "verified",
+    outcome: "correct",
+    credibilityDelta: 22,
+    resolvedAt: "2026-05-15T12:00:00.000Z",
+    forecaster: {
+      name: "Daniel Scry",
+      slug: "daniel-scry",
+      subjectType: "user",
+      avatarColor: "#a78bfa",
+    },
+    calledProbability: 58,
+    consensusAtCall: 34,
+    consensusAtResolution: 57,
+    side: "YES",
+    calledAt: "2026-04-28",
+    reasoning:
+      "Credit spreads and payroll revisions broke consensus complacency. Guidance cuts were lagging the macro impulse — the market was still treating soft landing as base case.",
+    networkImpact: {
+      consensusAtCall: 34,
+      consensusAtResolution: 57,
+      consensusShift: 23,
+      publicReads: 19,
+      backers: 4,
+      challengers: 3,
+      followersGained: 11,
+      credibilityDistributed: 34,
+    },
+    backers: [],
+    challengers: [],
+    timeline: [],
+    credibilityImpact: {
+      earned: 22,
+      reason: "Early recession-risk signal before consensus repriced.",
+    },
+    related: [],
+  },
+  {
+    id: "receipt-fed-consensus-break",
+    displayNumber: "1458",
+    forecastTitle: "Fed cut consensus break before June meeting",
+    status: "verified",
+    outcome: "correct",
+    credibilityDelta: 9,
+    resolvedAt: "2026-05-02T10:00:00.000Z",
+    forecaster: {
+      name: "Daniel Scry",
+      slug: "daniel-scry",
+      subjectType: "user",
+      avatarColor: "#a78bfa",
+    },
+    calledProbability: 61,
+    consensusAtCall: 38,
+    consensusAtResolution: 55,
+    side: "YES",
+    calledAt: "2026-04-18",
+    reasoning:
+      "Dot plot drift and swap pricing diverged from headline consensus. The break was visible in OIS before it showed up in prediction markets.",
+    networkImpact: {
+      consensusAtCall: 38,
+      consensusAtResolution: 55,
+      consensusShift: 17,
+      publicReads: 7,
+      backers: 2,
+      challengers: 3,
+      followersGained: 4,
+      credibilityDistributed: 12,
+    },
+    backers: [],
+    challengers: [],
+    timeline: [],
+    credibilityImpact: {
+      earned: 9,
+      reason: "Verified ahead of June meeting repricing window.",
+    },
+    related: [],
+  },
+  {
+    id: "receipt-btc-breakout",
+    displayNumber: "1442",
+    forecastTitle: "BTC above 150k by June",
+    status: "verified",
+    outcome: "missed",
+    credibilityDelta: -9,
+    resolvedAt: "2026-05-10T16:00:00.000Z",
+    forecaster: {
+      name: "Daniel Scry",
+      slug: "daniel-scry",
+      subjectType: "user",
+      avatarColor: "#a78bfa",
+    },
+    calledProbability: 81,
+    consensusAtCall: 54,
+    consensusAtResolution: 38,
+    side: "YES",
+    calledAt: "2026-03-22",
+    reasoning:
+      "Liquidity impulse looked stronger than on-chain distribution suggested. High conviction on timing — resolution invalidated the path thesis.",
+    networkImpact: {
+      consensusAtCall: 54,
+      consensusAtResolution: 38,
+      consensusShift: -16,
+      publicReads: 24,
+      backers: 1,
+      challengers: 4,
+      followersGained: 2,
+      credibilityDistributed: -8,
+    },
+    backers: [],
+    challengers: [],
+    timeline: [],
+    credibilityImpact: {
+      earned: -9,
+      reason: "High-conviction miss — credibility debited on resolution.",
+    },
+    related: [],
+  },
+];
+
+function attachRelated(receipts: ReceiptDetail[]): ReceiptDetail[] {
+  const resolved = receipts.filter((r) => r.outcome !== "pending");
+  return receipts.map((r) => ({
+    ...r,
+    related: resolved
+      .filter(
+        (o) =>
+          o.id !== r.id && o.forecaster.slug === r.forecaster.slug,
+      )
+      .slice(0, 4)
+      .map((o) => ({
+        id: o.id,
+        forecastTitle: o.forecastTitle,
+        forecasterName: o.forecaster.name,
+        outcome: o.outcome,
+        credibilityDelta: o.credibilityDelta,
+      })),
+  }));
+}
+
+export const MOCK_RECEIPT_DETAILS_WITH_RELATED = attachRelated(MOCK_RECEIPT_DETAILS);

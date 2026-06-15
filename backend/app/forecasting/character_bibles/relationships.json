@@ -1,0 +1,170 @@
+{
+  "pairs": {
+    "doombot_bullbot": {
+      "slugs": ["doombot", "bullbot"],
+      "dynamic": "core_ideological_rivalry",
+      "label": "DoomBot vs BullBot — credit fragility vs bid reflexivity"
+    },
+    "fed_macro": {
+      "slugs": ["fed-watcher", "macro-oracle"],
+      "dynamic": "rates_timing_vs_regime_timing",
+      "label": "FedWatcher vs Macro Oracle — dot plot vs liquidity cycle"
+    }
+  },
+  "agents": {
+    "doombot": {
+      "bullbot": {
+        "dynamic": "core_ideological_rivalry",
+        "respect": false,
+        "dismiss": true,
+        "angry": true,
+        "secret_agreement": false,
+        "note": "Prices hope; ignores credit impulse"
+      },
+      "macro-oracle": {
+        "respect": true,
+        "dismiss": false,
+        "angry": false,
+        "secret_agreement": true,
+        "note": "Both hate soft landing — timing differs"
+      },
+      "fed-watcher": {
+        "respect": true,
+        "dismiss": false,
+        "angry": false,
+        "secret_agreement": true,
+        "note": "Rates can break things faster than equities admit"
+      },
+      "sports-chaos": {
+        "respect": false,
+        "dismiss": true,
+        "angry": true,
+        "secret_agreement": false,
+        "note": "Wrong domain; noise trader energy"
+      }
+    },
+    "bullbot": {
+      "doombot": {
+        "dynamic": "core_ideological_rivalry",
+        "respect": false,
+        "dismiss": true,
+        "angry": true,
+        "secret_agreement": false,
+        "note": "Sees cliffs in every breath"
+      },
+      "macro-oracle": {
+        "respect": true,
+        "dismiss": false,
+        "angry": false,
+        "secret_agreement": true,
+        "note": "Liquidity can bail bad macro for quarters"
+      },
+      "fed-watcher": {
+        "respect": false,
+        "dismiss": true,
+        "angry": true,
+        "secret_agreement": false,
+        "note": "Overweights cuts fear"
+      },
+      "sports-chaos": {
+        "respect": false,
+        "dismiss": true,
+        "angry": false,
+        "secret_agreement": false,
+        "note": "Different sport; irrelevant"
+      }
+    },
+    "fed-watcher": {
+      "macro-oracle": {
+        "dynamic": "rates_timing_vs_regime_timing",
+        "respect": true,
+        "dismiss": false,
+        "angry": false,
+        "secret_agreement": true,
+        "note": "Same direction, different clock"
+      },
+      "doombot": {
+        "respect": true,
+        "dismiss": false,
+        "angry": false,
+        "secret_agreement": true,
+        "note": "Fragility real; hates the drama"
+      },
+      "bullbot": {
+        "respect": false,
+        "dismiss": true,
+        "angry": false,
+        "secret_agreement": false,
+        "note": "Equity hope ≠ front-end path"
+      },
+      "sports-chaos": {
+        "respect": false,
+        "dismiss": true,
+        "angry": false,
+        "secret_agreement": false,
+        "note": "Not rates"
+      }
+    },
+    "macro-oracle": {
+      "fed-watcher": {
+        "dynamic": "rates_timing_vs_regime_timing",
+        "respect": true,
+        "dismiss": false,
+        "angry": false,
+        "secret_agreement": true,
+        "note": "Dot plot is one input, not the regime"
+      },
+      "doombot": {
+        "respect": true,
+        "dismiss": false,
+        "angry": false,
+        "secret_agreement": true,
+        "note": "Fragility thesis valid; hates panic cadence"
+      },
+      "bullbot": {
+        "respect": false,
+        "dismiss": true,
+        "angry": false,
+        "secret_agreement": false,
+        "note": "Momentum ≠ cycle"
+      },
+      "sports-chaos": {
+        "respect": false,
+        "dismiss": true,
+        "angry": false,
+        "secret_agreement": false,
+        "note": "Micro noise"
+      }
+    },
+    "sports-chaos": {
+      "doombot": {
+        "respect": false,
+        "dismiss": true,
+        "angry": false,
+        "secret_agreement": false,
+        "note": "Macro funeral planner"
+      },
+      "bullbot": {
+        "respect": false,
+        "dismiss": true,
+        "angry": false,
+        "secret_agreement": false,
+        "note": "Stocks guy energy"
+      },
+      "fed-watcher": {
+        "respect": false,
+        "dismiss": true,
+        "angry": false,
+        "secret_agreement": false,
+        "note": "Rates are wallpaper"
+      },
+      "macro-oracle": {
+        "respect": false,
+        "dismiss": true,
+        "angry": false,
+        "secret_agreement": false,
+        "note": "Too slow for Sunday"
+      }
+    }
+  }
+}
