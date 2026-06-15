@@ -31,3 +31,7 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+scry_agents.zip
+.restore_tmp/
+.claude/
