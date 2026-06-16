@@ -751,6 +751,27 @@ def generate_rival_reply(
     if speaker_slug == "fed-watcher":
         dir_word = direction or "Lower"
     formatted = format_counter(speaker_slug, target_slug, line, confidence=conf, direction=dir_word)
+    generation_meta = gen_meta
+    if db is not None and market_title:
+        from app.forecasting.services.agent_memory_v2 import apply_episodic_memory_pipeline
+
+        woven_line, mem_meta = apply_episodic_memory_pipeline(
+            line,
+            db=db,
+            agent_slug=speaker_slug,
+            path="rivalry",
+            market_title=market_title,
+            rival_slug=target_slug,
+            seed=seed,
+            generation_mode="llm" if llm_line else "template",
+            weave=not bool(llm_line),
+        )
+        if woven_line != line:
+            line = woven_line
+            formatted = format_counter(
+                speaker_slug, target_slug, line, confidence=conf, direction=dir_word
+            )
+        generation_meta = {**gen_meta, **mem_meta}
     return CounterCopy(
         speaker_slug=speaker_slug,
         target_slug=target_slug,
@@ -758,7 +779,7 @@ def generate_rival_reply(
         confidence=conf,
         direction=dir_word,
         formatted=formatted,
-        generation_meta=gen_meta,
+        generation_meta=generation_meta,
     )
 
 
@@ -862,6 +883,27 @@ def generate_counter(
     if speaker_slug == "fed-watcher":
         dir_word = direction or "Lower"
     formatted = format_counter(speaker_slug, target_slug, line, confidence=conf, direction=dir_word)
+    generation_meta = gen_meta
+    if db is not None and market_title:
+        from app.forecasting.services.agent_memory_v2 import apply_episodic_memory_pipeline
+
+        woven_line, mem_meta = apply_episodic_memory_pipeline(
+            line,
+            db=db,
+            agent_slug=speaker_slug,
+            path="rivalry",
+            market_title=market_title,
+            rival_slug=target_slug,
+            seed=seed,
+            generation_mode="llm" if llm_line else "template",
+            weave=not bool(llm_line),
+        )
+        if woven_line != line:
+            line = woven_line
+            formatted = format_counter(
+                speaker_slug, target_slug, line, confidence=conf, direction=dir_word
+            )
+        generation_meta = {**gen_meta, **mem_meta}
     return CounterCopy(
         speaker_slug=speaker_slug,
         target_slug=target_slug,
@@ -869,7 +911,7 @@ def generate_counter(
         confidence=conf,
         direction=dir_word,
         formatted=formatted,
-        generation_meta=gen_meta,
+        generation_meta=generation_meta,
     )
 
 
@@ -957,9 +999,38 @@ def generate_feed_post_with_meta(
         "event_type": event_type,
         "term": vocab,
         "prob": prob,
+        "seed": seed,
     }
     if extra_context:
         ctx.update(extra_context)
+    if market_title and db is not None:
+        from app.forecasting.models import Agent
+        from app.forecasting.services.agent_memory_v2 import (
+            gather_episodic_memory_v2,
+            maybe_weave_episodic_memory,
+            resolve_market_id,
+            thesis_bucket_from_text,
+        )
+
+        agent_row = db.query(Agent).filter(Agent.slug == slug).first()
+        market_id = resolve_market_id(db, market_title=market_title)
+        rival_slug = ctx.get("opponent_slug") or ctx.get("target_slug")
+        rival_id = None
+        if rival_slug:
+            rival = db.query(Agent).filter(Agent.slug == str(rival_slug)).first()
+            rival_id = rival.id if rival else None
+        thesis_bucket = ctx.get("thesis_bucket") or thesis_bucket_from_text(market_title)
+        if agent_row:
+            episodic = gather_episodic_memory_v2(
+                db,
+                agent_row.id,
+                market_id=market_id,
+                rival_id=rival_id,
+                thesis_bucket=str(thesis_bucket) if thesis_bucket else None,
+            )
+            ctx["episodic_memory"] = episodic
+            if market_id is not None:
+                ctx["market_id"] = market_id
 
     def _gen() -> str:
         opener = _opening_for_slug(slug, rng, market, vocab)
@@ -988,11 +1059,31 @@ def generate_feed_post_with_meta(
     if llm_text:
         text, score = ensure_character_copy(slug, lambda: llm_text, role="aligned")
         gen_meta["consistency"] = score.as_dict()
-        return text, score, gen_meta
-    text, score = ensure_character_copy(slug, _gen, role="aligned")
-    gen_meta["generation_mode"] = "template"
-    gen_meta["llm_fallback"] = True
-    gen_meta["consistency"] = score.as_dict()
+        gen_meta["generation_mode"] = "llm"
+    else:
+        text, score = ensure_character_copy(slug, _gen, role="aligned")
+        gen_meta["generation_mode"] = "template"
+        gen_meta["llm_fallback"] = True
+        gen_meta["consistency"] = score.as_dict()
+
+    if db is not None and market_title:
+        from app.forecasting.services.agent_memory_v2 import apply_episodic_memory_pipeline
+
+        path = "llm" if gen_meta.get("generation_mode") == "llm" else "template"
+        text, mem_meta = apply_episodic_memory_pipeline(
+            text,
+            db=db,
+            agent_slug=slug,
+            path=path,
+            market_id=ctx.get("market_id"),
+            market_title=market_title,
+            rival_slug=ctx.get("opponent_slug") or ctx.get("target_slug"),
+            thesis_bucket=ctx.get("thesis_bucket"),
+            seed=seed,
+            generation_mode=gen_meta.get("generation_mode"),
+            weave=path == "template",
+        )
+        gen_meta.update(mem_meta)
     return text, score, gen_meta
 
 
@@ -1248,11 +1339,28 @@ def generate_conviction_update_with_meta(
     if llm_text:
         text, score = ensure_character_copy(slug, lambda: llm_text, role="aligned")
         gen_meta["consistency"] = score.as_dict()
-        return text, score, gen_meta
-    text, score = ensure_character_copy(slug, _template_fallback, role="aligned")
-    gen_meta["generation_mode"] = "template"
-    gen_meta["llm_fallback"] = True
-    gen_meta["consistency"] = score.as_dict()
+        gen_meta["generation_mode"] = "llm"
+    else:
+        text, score = ensure_character_copy(slug, _template_fallback, role="aligned")
+        gen_meta["generation_mode"] = "template"
+        gen_meta["llm_fallback"] = True
+        gen_meta["consistency"] = score.as_dict()
+
+    if db is not None and market_title:
+        from app.forecasting.services.agent_memory_v2 import apply_episodic_memory_pipeline
+
+        path = "llm" if gen_meta.get("generation_mode") == "llm" else "template"
+        text, mem_meta = apply_episodic_memory_pipeline(
+            text,
+            db=db,
+            agent_slug=slug,
+            path=path,
+            market_title=market_title,
+            seed=seed,
+            generation_mode=gen_meta.get("generation_mode"),
+            weave=path == "template",
+        )
+        gen_meta.update(mem_meta)
     return text, score, gen_meta
 
 

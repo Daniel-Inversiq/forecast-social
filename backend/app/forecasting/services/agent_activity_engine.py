@@ -480,6 +480,34 @@ def _finalize_agent_post(
     )
     meta["system_event_label"] = _system_event_label(trigger, market, slug)
     meta["activity_type"] = activity_type
+    combined_for_memory = f"{title}\n{body}".strip() or polished
+    if db is not None and market:
+        from app.forecasting.services.agent_memory_v2 import (
+            apply_episodic_memory_pipeline,
+            thesis_bucket_from_text,
+        )
+
+        gen_mode = str(meta.get("generation_mode") or "template")
+        path = "llm" if gen_mode == "llm" else "template"
+        sanitized, mem_meta = apply_episodic_memory_pipeline(
+            combined_for_memory,
+            db=db,
+            agent_slug=slug,
+            path=path,
+            market_id=market.id,
+            market_title=market.title,
+            rival_slug=meta.get("counter_target") or meta.get("opponent_slug"),
+            thesis_bucket=thesis_bucket_from_text(market.title),
+            seed=meta.get("generation_seed"),
+            generation_mode=gen_mode,
+            weave=path == "template",
+            already_applied=bool(meta.get("memory_pipeline_applied")),
+        )
+        if mem_meta:
+            meta.update(mem_meta)
+        if sanitized != combined_for_memory:
+            title, body = agent_feed_title_body(sanitized, activity_type)
+            combined_for_memory = sanitized
     title, body, san_meta = finalize_persisted_copy(
         slug,
         title,
@@ -549,6 +577,29 @@ def _generate_body(
         meta["activity_type"] = trigger.activity_type
         if is_event_driven_headline(title, slug=slug, market_title=market_title)[0]:
             meta["headline_regenerated"] = True
+        if db is not None and market:
+            from app.forecasting.services.agent_memory_v2 import (
+                apply_episodic_memory_pipeline,
+                thesis_bucket_from_text,
+            )
+
+            combined = f"{title}\n{body}".strip()
+            combined, mem_meta = apply_episodic_memory_pipeline(
+                combined,
+                db=db,
+                agent_slug=slug,
+                path="receipt",
+                market_id=market.id,
+                market_title=market.title,
+                rival_slug=target_slug,
+                thesis_bucket=thesis_bucket_from_text(market.title),
+                seed=seed,
+                generation_mode=str(rw_meta.get("generation_mode") or "template"),
+                weave=True,
+            )
+            if mem_meta:
+                meta.update(mem_meta)
+            title, body = agent_feed_title_body(combined, trigger.activity_type)
         title, body, san_meta = finalize_persisted_copy(slug, title, body, seed=seed, db=db)
         if san_meta:
             meta.update(san_meta)
@@ -580,6 +631,33 @@ def _generate_body(
         meta["activity_type"] = trigger.activity_type
         if is_event_driven_headline(title, slug=slug, market_title=market_title)[0]:
             meta["headline_regenerated"] = True
+        if db is not None and market:
+            from app.forecasting.services.agent_memory_v2 import (
+                apply_episodic_memory_pipeline,
+                thesis_bucket_from_text,
+            )
+
+            memory_path = (
+                "battle" if trigger.activity_type == "battle_response" else "rivalry"
+            )
+            combined = f"{title}\n{body}".strip()
+            combined, mem_meta = apply_episodic_memory_pipeline(
+                combined,
+                db=db,
+                agent_slug=slug,
+                path=memory_path,
+                market_id=market.id,
+                market_title=market.title,
+                rival_slug=target_slug,
+                thesis_bucket=thesis_bucket_from_text(market.title),
+                seed=seed,
+                generation_mode=str(counter.generation_meta.get("generation_mode") or "template"),
+                weave=counter.generation_meta.get("generation_mode") != "llm",
+                already_applied=bool(counter.generation_meta.get("memory_pipeline_applied")),
+            )
+            if mem_meta:
+                meta.update(mem_meta)
+            title, body = agent_feed_title_body(combined, trigger.activity_type)
         title, body, san_meta = finalize_persisted_copy(slug, title, body, seed=seed, db=db)
         if san_meta:
             meta.update(san_meta)
@@ -707,6 +785,28 @@ def _generate_body(
         meta["generation_mode"] = "narrative_stage"
         meta["system_event_label"] = _system_event_label(trigger, market, slug)
         meta["activity_type"] = trigger.activity_type
+        if db is not None and market:
+            from app.forecasting.services.agent_memory_v2 import (
+                apply_episodic_memory_pipeline,
+                thesis_bucket_from_text,
+            )
+
+            combined = f"{title}\n{body}".strip()
+            combined, mem_meta = apply_episodic_memory_pipeline(
+                combined,
+                db=db,
+                agent_slug=slug,
+                path="narrative",
+                market_id=market.id,
+                market_title=market.title,
+                thesis_bucket=thesis_bucket_from_text(trigger.narrative_label or market.title),
+                seed=seed,
+                generation_mode="narrative",
+                weave=True,
+            )
+            if mem_meta:
+                meta.update(mem_meta)
+            title, body = agent_feed_title_body(combined, trigger.activity_type)
         title, body, san_meta = finalize_persisted_copy(slug, title, body, seed=seed, db=db)
         if san_meta:
             meta.update(san_meta)

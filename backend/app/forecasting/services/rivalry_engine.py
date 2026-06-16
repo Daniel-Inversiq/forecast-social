@@ -488,6 +488,32 @@ def create_rival_reply_activity(
     )
     if not body.strip():
         body = headline
+    if market and db:
+        from app.forecasting.services.agent_memory_v2 import (
+            apply_episodic_memory_pipeline,
+            thesis_bucket_from_text,
+        )
+
+        combined = f"{title}\n{body}".strip()
+        combined, mem_meta = apply_episodic_memory_pipeline(
+            combined,
+            db=db,
+            agent_slug=responder_slug,
+            path="rivalry",
+            market_id=market.id,
+            market_title=market.title,
+            rival_slug=target_slug,
+            thesis_bucket=thesis_bucket_from_text(market.title),
+            seed=seed,
+            generation_mode=str(counter.generation_meta.get("generation_mode") or "template"),
+            weave=counter.generation_meta.get("generation_mode") != "llm",
+            already_applied=bool(counter.generation_meta.get("memory_pipeline_applied")),
+        )
+        if mem_meta:
+            meta.update(mem_meta)
+        from app.forecasting.services.agent_feed_copy import agent_feed_title_body
+
+        title, body = agent_feed_title_body(combined, "rival_reply")
     title, body, san_meta = finalize_persisted_copy(
         responder_slug, title, body, seed=seed, db=db
     )

@@ -17,6 +17,12 @@ from app.forecasting.character_bibles import (
     relationships_for,
 )
 from app.forecasting.models import Agent, AgentGeneratedActivity, FeedEvent, ForecastResolution, Market
+from app.forecasting.services.agent_memory_v2 import (
+    format_episodic_memory_for_prompt,
+    gather_episodic_memory_v2,
+    resolve_market_id,
+    thesis_bucket_from_text,
+)
 
 POST_EVENT_TYPES = frozenset(
     {
@@ -51,6 +57,7 @@ class RetrievedContext:
     rival_posts: list[dict[str, Any]] = field(default_factory=list)
     rituals: dict[str, Any] = field(default_factory=dict)
     memory_guidance: str = ""
+    episodic_memory: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -62,6 +69,7 @@ class RetrievedContext:
             "rival_posts": self.rival_posts,
             "rituals": self.rituals,
             "memory_guidance": self.memory_guidance,
+            "episodic_memory": self.episodic_memory,
         }
 
 
@@ -353,6 +361,9 @@ def build_retrieved_context(
     event_type: str | None = None,
     event_kind: str | None = None,
     trigger_id: str | None = None,
+    market_id: int | None = None,
+    market_title: str | None = None,
+    thesis_bucket: str | None = None,
 ) -> RetrievedContext:
     ctx = RetrievedContext()
     ctx.few_shot_examples = gather_few_shot_examples(slug)
@@ -374,6 +385,25 @@ def build_retrieved_context(
     ctx.resolved_forecasts = gather_resolved_forecasts(db, agent.id)
     ctx.agent_continuity = gather_agent_continuity(db, agent.id, slug)
     ctx.rival_posts = gather_rival_posts(db, slug)
+    resolved_market_id = resolve_market_id(
+        db,
+        market_id=market_id,
+        market_title=market_title,
+    )
+    rival_id = None
+    if opponent_slug:
+        rival = db.query(Agent).filter(Agent.slug == opponent_slug).first()
+        rival_id = rival.id if rival else None
+    bucket = thesis_bucket_from_text(thesis_bucket) if thesis_bucket else None
+    if not bucket and market_title:
+        bucket = thesis_bucket_from_text(market_title)
+    ctx.episodic_memory = gather_episodic_memory_v2(
+        db,
+        agent.id,
+        market_id=resolved_market_id,
+        rival_id=rival_id,
+        thesis_bucket=bucket,
+    )
     return ctx
 
 
@@ -437,6 +467,9 @@ def format_retrieved_for_user_prompt(retrieved: RetrievedContext) -> str:
         sections.append("\n".join(lines))
     if retrieved.memory_guidance.strip():
         sections.append(f"## Memory guidance\n{retrieved.memory_guidance[:1200]}")
+    episodic_block = format_episodic_memory_for_prompt(retrieved.episodic_memory)
+    if episodic_block:
+        sections.append(episodic_block)
     return "\n\n".join(sections)
 
 

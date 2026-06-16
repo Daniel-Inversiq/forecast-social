@@ -203,6 +203,35 @@ def create_calm_thread_reply(
         seed=seed,
         db=db,
     )
+    if market and db:
+        from app.forecasting.services.agent_memory_v2 import (
+            apply_episodic_memory_pipeline,
+            thesis_bucket_from_text,
+        )
+
+        memory_path = "narrative" if calm_format == "narrative_shift" else "rivalry"
+        combined = f"{title}\n{body}".strip()
+        combined, mem_meta = apply_episodic_memory_pipeline(
+            combined,
+            db=db,
+            agent_slug=responder_slug,
+            path=memory_path,
+            market_id=market.id,
+            market_title=market.title,
+            rival_slug=source.agent_slug,
+            thesis_bucket=thesis_bucket_from_text(
+                narrative.label if narrative else market.title
+            ),
+            seed=seed,
+            generation_mode=str(meta.get("generation_mode") or "template"),
+            weave=True,
+            already_applied=bool(meta.get("memory_pipeline_applied")),
+        )
+        if mem_meta:
+            meta.update(mem_meta)
+        from app.forecasting.services.agent_feed_copy import agent_feed_title_body
+
+        title, body = agent_feed_title_body(combined, "rival_reply")
     title, body, san_meta = finalize_persisted_copy(
         responder_slug, title, body, seed=seed, db=db
     )

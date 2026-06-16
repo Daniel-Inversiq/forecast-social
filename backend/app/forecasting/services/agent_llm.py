@@ -28,6 +28,7 @@ from app.forecasting.services.agent_prompt_context import (
     estimate_bible_coverage_pct,
     format_retrieved_for_user_prompt,
 )
+from app.forecasting.services.agent_memory_v2 import episodic_memory_prompt_guidance
 
 GenerationTask = str  # post | counter | reaction | win | loss | battle | conviction_update
 
@@ -67,6 +68,7 @@ class PromptBundle:
             },
             "few_shot_examples": self.retrieved.get("few_shot_examples"),
             "rituals": self.retrieved.get("rituals"),
+            "episodic_memory": self.retrieved.get("episodic_memory"),
             "bible_coverage_pct": self.bible_coverage_pct,
         }
 
@@ -237,6 +239,12 @@ def build_user_prompt(
         formatted = format_retrieved_for_user_prompt(retrieved)
         if formatted:
             parts.append(formatted)
+        guidance = episodic_memory_prompt_guidance(
+            retrieved.episodic_memory or {},
+            seed=context.get("seed") or context.get("generation_seed"),
+        )
+        if guidance:
+            parts.append(guidance)
     return "\n".join(parts)
 
 
@@ -256,6 +264,11 @@ def build_prompt_bundle(
         event_type=str(ctx.get("event_type")) if ctx.get("event_type") else None,
         event_kind=str(ctx.get("event_kind")) if ctx.get("event_kind") else None,
         trigger_id=str(ctx.get("trigger_id")) if ctx.get("trigger_id") else None,
+        market_id=int(ctx["market_id"]) if ctx.get("market_id") is not None else None,
+        market_title=str(ctx.get("market_title")) if ctx.get("market_title") else None,
+        thesis_bucket=str(ctx.get("thesis_bucket") or ctx.get("thesis") or ctx.get("prior_thesis"))
+        if (ctx.get("thesis_bucket") or ctx.get("thesis") or ctx.get("prior_thesis"))
+        else None,
     )
     system = build_system_prompt(slug, task)
     user = build_user_prompt(slug, task, ctx, retrieved)

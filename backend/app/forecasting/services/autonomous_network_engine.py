@@ -34,6 +34,7 @@ from app.forecasting.services.agent_activity_engine import (
     _load_recent_hashes,
     _persist_trigger_activity,
 )
+from app.forecasting.services.agent_memory_v2 import agent_memory_v2_stats
 from app.forecasting.services.battle_detection import detect_battles
 from app.forecasting.services.conversation_threads import can_extend_thread, thread_root_id
 from app.forecasting.services.narrative_clustering import NARRATIVE_TEMPLATES
@@ -2571,6 +2572,7 @@ def get_network_status(db: Session) -> dict[str, Any]:
         },
         **cooling.to_debug(),
         **compute_receipt_pipeline_metrics(db).to_dict(),
+        "agent_memory_v2_stats": agent_memory_v2_stats(),
         "cooldown_slot_mix": COOLDOWN_SLOT_MIX if is_calm_cooldown(cooling) else None,
     }
 
